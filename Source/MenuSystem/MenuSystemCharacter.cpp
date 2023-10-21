@@ -10,6 +10,8 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "OnlineSubsystem.h"
+#include "OnlineSessionSettings.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -17,6 +19,7 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 // AMenuSystemCharacter
 
 AMenuSystemCharacter::AMenuSystemCharacter()
+	: CreateSessionCompleteDelgate(FOnCreateSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnCreateSessionComplete))
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -67,6 +70,76 @@ void AMenuSystemCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
+	if (OnlineSubsystem) {
+		OnlineSeesionInterface = OnlineSubsystem->GetSessionInterface();
+
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				15.f,
+				FColor::Blue,
+				FString::Printf(TEXT("Found subsystem %s"), *OnlineSubsystem->GetSubsystemName().ToString())
+			);
+		}
+	}
+}
+
+void AMenuSystemCharacter::CreateGameSession()
+{
+	//Called when pressing 1 key
+	if (!OnlineSeesionInterface.IsValid()) {
+		return;
+	}
+
+	// Check if a session already exists. if yes, destroy this session
+	auto ExistingSession = OnlineSeesionInterface->GetNamedSession(NAME_GameSession);
+	if (ExistingSession) {
+		OnlineSeesionInterface->DestroySession(NAME_GameSession);
+	}
+
+	TSharedPtr<FOnlineSessionSettings> SessionSettings = MakeShareable(new FOnlineSessionSettings());
+	SessionSettings->bIsLANMatch = false;
+	SessionSettings->NumPublicConnections = 4;
+	SessionSettings->bAllowJoinInProgress = true;
+	// When steam setup sessions, it uses presence. It has regions. It search sessions in your region.
+	// We need this to be set to true in order to make our connection work.
+	SessionSettings->bAllowJoinViaPresence = true;
+	SessionSettings->bShouldAdvertise = true;
+	// User region to find sessions going on in our region.
+	SessionSettings->bUsesPresence = true;
+
+	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+	OnlineSeesionInterface->AddOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelgate);
+	OnlineSeesionInterface->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *SessionSettings);
+}
+
+void AMenuSystemCharacter::OnCreateSessionComplete(FName SessionName, bool wasSuccessful)
+{
+	if (wasSuccessful) {
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				15.f,
+				FColor::Blue,
+				FString::Printf(TEXT("Created session %s"), *SessionName.ToString())
+			);
+		}
+	}
+	else
+	{
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				15.f,
+				FColor::Red,
+				FString::Printf(TEXT("Failed to create session!"))
+			);
+		}
+	}
+
+
 }
 
 //////////////////////////////////////////////////////////////////////////
