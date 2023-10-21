@@ -72,15 +72,22 @@ public:
 	/** Returns FollowCamera subobject **/
 
 public:
-	IOnlineSessionPtr OnlineSeesionInterface;
+	IOnlineSessionPtr OnlineSessionInterface;
 
 protected:
 	UFUNCTION(BlueprintCallable)
 	void CreateGameSession();
+	UFUNCTION(BlueprintCallable)
+	void JoinGameSession();
 
 	void OnCreateSessionComplete(FName SessionName, bool wasSuccessful);
+	void OnFindSessionComplete(bool bWasSuccessful);
+	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 private:
 	// Called when successfully create a game session.
-	FOnCreateSessionCompleteDelegate CreateSessionCompleteDelgate;
+	FOnCreateSessionCompleteDelegate CreateSessionCompleteDelegate;
+	FOnFindSessionsCompleteDelegate FindSessionsCompleteDelegate;
+	FOnJoinSessionCompleteDelegate JoinSessionCompleteDelegate;
+	TSharedPtr<FOnlineSessionSearch> SessionSearch;
 };
 
