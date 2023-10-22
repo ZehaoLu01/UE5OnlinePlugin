@@ -5,8 +5,11 @@
 #include "Components/Button.h"
 #include "MultiplayerSessionsSubsystem.h"
 
-void UMenu::MenuSetup()
+void UMenu::MenuSetup(int32 NumberOfPublicConnections, FString TypeOfMatch)
 {
+	NumPublicConnections = NumberOfPublicConnections;
+	MatchType = TypeOfMatch;
+
 	AddToViewport();
 	SetVisibility(ESlateVisibility::Visible);
 	bIsFocusable = true;
@@ -45,6 +48,12 @@ bool UMenu::Initialize()
 	return true;
 }
 
+void UMenu::NativeDestruct()
+{
+	MenuTearDown();
+	Super::NativeDestruct();
+}
+
 void UMenu::HostButtonClicked()
 {
 	if (GEngine) {
@@ -57,7 +66,9 @@ void UMenu::HostButtonClicked()
 	}
 
 	if (multiplayerSessionsSubsystem) {
-		multiplayerSessionsSubsystem->CreateSession(4, FString("FreeForAll"));
+		multiplayerSessionsSubsystem->CreateSession(NumPublicConnections, MatchType);
+		UWorld* World = GetWorld();
+		World->ServerTravel("/Game/ThirdPerson/Maps/Lobby?listen");
 	}
 }
 
@@ -70,5 +81,20 @@ void UMenu::JoinButtonClicked()
 			FColor::Yellow,
 			FString::Printf(TEXT("Join Button clicked!"))
 		);
+	}
+}
+
+void UMenu::MenuTearDown()
+{
+	RemoveFromParent();
+	UWorld* World = GetWorld();
+	if (World) {
+		APlayerController* PlayerController = World->GetFirstPlayerController();
+
+		// We used to set input mode to FInputModeUIOnly. This will cause not able to move character.
+		FInputModeGameOnly InputData;
+		PlayerController->SetInputMode(InputData);
+		PlayerController->SetShowMouseCursor(false);
+
 	}
 }

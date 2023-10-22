@@ -17,11 +17,14 @@ class MULTIPLAYERSESSIONS_API UMenu : public UUserWidget
 	GENERATED_BODY()
 public:
 	UFUNCTION(BlueprintCallable)
-	void MenuSetup();
+	void MenuSetup(int32 NumberOfPublicConnections = 4, FString TypeOfMatch = FString(TEXT("FreeForAll")));
 
 protected:
 	virtual bool Initialize() override;
 
+	// If we are travelling to another level, the current level will be drestroyed and remove.
+	// In this case, all the widgets will call this function.
+	virtual void NativeDestruct();
 private:
 
 	// UE Super is not working. Using this as a walkaround.
@@ -42,5 +45,10 @@ private:
 	UFUNCTION()
 	void JoinButtonClicked();
 
+	void MenuTearDown();
+
 	UMultiplayerSessionsSubsystem* multiplayerSessionsSubsystem;
+
+	int32 NumPublicConnections{4};
+	FString MatchType{ TEXT("FreeForAll") };
 };

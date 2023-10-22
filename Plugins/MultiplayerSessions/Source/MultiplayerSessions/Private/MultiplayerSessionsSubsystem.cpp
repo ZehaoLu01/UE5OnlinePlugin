@@ -3,6 +3,7 @@
 
 #include "MultiplayerSessionsSubsystem.h"
 #include "OnlineSubsystem.h"
+#include "OnlineSessionSettings.h"
 
 UMultiplayerSessionsSubsystem::UMultiplayerSessionsSubsystem():
 	CreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnCreateSessionComplete)),
@@ -20,6 +21,32 @@ UMultiplayerSessionsSubsystem::UMultiplayerSessionsSubsystem():
 
 void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FString MatchType)
 {
+	if (!SessionInterface.IsValid()) {
+		return;
+	}
+
+
+	auto existingSession = SessionInterface->GetNamedSession(GameSessionName);
+	if (existingSession) {
+		SessionInterface->DestroySession(GameSessionName);
+	}
+
+	// Store the delegate in a FDelegateHandle so we can later remove it from the delegate list.
+	CreateSessionCompleteDelegateHandle = SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegate);
+	
+	LastSessionSettings = MakeShareable(new FOnlineSessionSettings());
+	// If we are using LAN matching, the subsystem name will be "NULL"
+	LastSessionSettings->bIsLANMatch = IOnlineSubsystem::Get()->GetSubsystemName() == "NULL" ? true : false;
+	LastSessionSettings->NumPublicConnections = NumPublicConnections;
+	LastSessionSettings->bAllowJoinInProgress = true;
+	LastSessionSettings->bAllowJoinViaPresence = true;
+	LastSessionSettings->bUsesPresence = true;
+	LastSessionSettings->Set("MatchType", MatchType, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+
+	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+	if (SessionInterface->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), GameSessionName, *LastSessionSettings)) {
+		SessionInterface->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegateHandle);
+	}
 }
 
 void UMultiplayerSessionsSubsystem::FindSessions(int32 MaxSearchResults)
