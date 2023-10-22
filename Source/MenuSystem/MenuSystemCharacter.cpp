@@ -205,7 +205,7 @@ void AMenuSystemCharacter::OnFindSessionComplete(bool bWasSuccessful)
 			const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
 			
 			if (LocalPlayer) {
-				OnlineSessionInterface->JoinSession(*LocalPlayer->GetPreferredUniqueNetId(), GameSessionName, Result);
+				OnlineSessionInterface->JoinSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, Result);
 			}
 		}
 	}
@@ -220,7 +220,7 @@ void AMenuSystemCharacter::OnJoinSessionComplete(FName SessionName, EOnJoinSessi
 	FString Address;
 
 	// Maybe we can use the parameter name here
-	if (OnlineSessionInterface->GetResolvedConnectString(GameSessionName, Address))
+	if (OnlineSessionInterface->GetResolvedConnectString(NAME_GameSession, Address))
 	{
 		if (GEngine) {
 			GEngine->AddOnScreenDebugMessage(

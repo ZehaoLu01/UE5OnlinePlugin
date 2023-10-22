@@ -26,9 +26,9 @@ void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FS
 	}
 
 
-	auto existingSession = SessionInterface->GetNamedSession(GameSessionName);
+	auto existingSession = SessionInterface->GetNamedSession(NAME_GameSession);
 	if (existingSession) {
-		SessionInterface->DestroySession(GameSessionName);
+		SessionInterface->DestroySession(NAME_GameSession);
 	}
 
 	// Store the delegate in a FDelegateHandle so we can later remove it from the delegate list.
@@ -45,7 +45,7 @@ void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FS
 	LastSessionSettings->Set("MatchType", MatchType, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
 	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
-	if (!SessionInterface->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), GameSessionName, *LastSessionSettings)) {
+	if (!SessionInterface->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *LastSessionSettings)) {
 		SessionInterface->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegateHandle);
 
 		//Broadcast our custom delegate
