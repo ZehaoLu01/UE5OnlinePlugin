@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "Menu.generated.h"
 class UButton;
 class UMultiplayerSessionsSubsystem;
@@ -25,6 +26,20 @@ protected:
 	// If we are travelling to another level, the current level will be drestroyed and remove.
 	// In this case, all the widgets will call this function.
 	virtual void NativeDestruct();
+
+	//
+	// Callbacks for the custom delegates on the Multiplayer SessionSubsystem
+	// UFUNCTION macro should be added, otherwise they will not be bound to delegates.
+	//
+	UFUNCTION()
+	void OnCreateSession(bool bWasSuccessful);
+	void OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionResults, bool bWasSuccessful);
+	void OnJoinSession(EOnJoinSessionCompleteResult::Type Result);
+	UFUNCTION()
+	void OnDestroySession(bool bWasSuccessful);
+	UFUNCTION()
+	void OnStartSession(bool bWasSuccessful);
+
 private:
 
 	// UE Super is not working. Using this as a walkaround.
@@ -47,7 +62,7 @@ private:
 
 	void MenuTearDown();
 
-	UMultiplayerSessionsSubsystem* multiplayerSessionsSubsystem;
+	UMultiplayerSessionsSubsystem* MultiplayerSessionsSubsystem;
 
 	int32 NumPublicConnections{4};
 	FString MatchType{ TEXT("FreeForAll") };
