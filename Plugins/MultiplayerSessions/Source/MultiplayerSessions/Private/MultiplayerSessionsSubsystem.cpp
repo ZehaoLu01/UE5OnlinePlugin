@@ -96,7 +96,8 @@ void UMultiplayerSessionsSubsystem::JoinSession(const FOnlineSessionSearchResult
 
 void UMultiplayerSessionsSubsystem::DestroySession()
 {
-	if (!SessionInterface) {
+	if (!SessionInterface.IsValid()) {
+		MultiplayerOnDestroySessionComplete.Broadcast(false);
 		return;
 	}
 
@@ -109,7 +110,8 @@ void UMultiplayerSessionsSubsystem::DestroySession()
 
 void UMultiplayerSessionsSubsystem::StartSession()
 {
-	if (!SessionInterface) {
+	if (!SessionInterface.IsValid()) {
+		MultiplayerOnStartSessionComplete.Broadcast(false);
 		return;
 	}
 
