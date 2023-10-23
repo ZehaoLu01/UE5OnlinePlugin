@@ -55,6 +55,8 @@ bool UMenu::Initialize()
 		JoinButton->OnClicked.AddDynamic(this, &ThisClass::JoinButtonClicked);
 	}
 
+	// TODO: we may want to add Start and Destroy button here which should trigger Start Session and Destroy Session.
+
 	return true;
 }
 
@@ -132,12 +134,56 @@ void UMenu::OnJoinSession(EOnJoinSessionCompleteResult::Type Result)
 	}
 }
 
+// Undefined behavior?
+// What to do if the session is destroyed?
 void UMenu::OnDestroySession(bool bWasSuccessful)
 {
+	if (bWasSuccessful) {
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				15.f,
+				FColor::Yellow,
+				FString(TEXT("Session destroyed successfully"))
+			);
+		}
+	}
+	else {
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				15.f,
+				FColor::Red,
+				FString(TEXT("Failed to destroy session"))
+			);
+		}
+	}
 }
 
 void UMenu::OnStartSession(bool bWasSuccessful)
 {
+	if (bWasSuccessful) {
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				15.f,
+				FColor::Yellow,
+				FString(TEXT("Session Started."))
+			);
+		}
+
+		// Maybe travel to somewhere here.
+	}
+	else {
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				15.f,
+				FColor::Red,
+				FString(TEXT("Failed to start session"))
+			);
+		}
+	}
 }
 
 void UMenu::HostButtonClicked()
